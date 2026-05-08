@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Iris Flower Predictor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+    <style>
+        :root {
+            --bg: #0a0e1a;
+            --surface: #111827;
+            --surface2: #1a2235;
+            --border: rgba(255,255,255,0.07);
+            --text: #f0f4ff;
+            --text-muted: #8899bb;
+            --accent: #818cf8;
+            --accent2: #c084fc;
+            --radius: 18px;
+            --shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+            animation: drift 12s ease-in-out infinite alternate;
+        }
+        .blob-1 { width: 500px; height: 500px; background: #818cf8; top: -150px; left: -100px; animation-delay: 0s; }
+        .blob-2 { width: 400px; height: 400px; background: #c084fc; bottom: -100px; right: -50px; animation-delay: -4s; }
+        .blob-3 { width: 300px; height: 300px; background: #4ade80; top: 40%; left: 40%; animation-delay: -8s; opacity: 0.08; }
+        @keyframes drift {
+            from { transform: translate(0,0) scale(1); }
+            to   { transform: translate(30px, 20px) scale(1.05); }
+        }
+        .wrapper {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 24px 60px;
+        }
+        .header { text-align: center; margin-bottom: 48px; }
+        .header-tag {
+            display: inline-block;
+            background: rgba(129,140,248,0.15);
+            border: 1px solid rgba(129,140,248,0.3);
+            color: var(--accent);
+            font-size: 0.75rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: 6px 18px;
+            border-radius: 100px;
+            margin-bottom: 20px;
+        }
+        .header-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 900;
+            line-height: 1.05;
+            letter-spacing: -0.02em;
+            margin-bottom: 16px;
+        }
+        .header-title span {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header-sub { color: var(--text-muted); font-size: 0.9rem; letter-spacing: 0.05em; }
+        .species-row { display: flex; gap: 16px; margin-bottom: 36px; justify-content: center; }
+        .species-card {
+            flex: 1; max-width: 220px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            display: flex; align-items: center; gap: 12px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .species-card:hover { transform: translateY(-3px); border-color: var(--c); }
+        .species-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            background: var(--c); flex-shrink: 0;
+            box-shadow: 0 0 10px var(--c);
+        }
+        .species-card strong { font-size: 0.95rem; display: block; }
+        .species-card p { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+        .main-card {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: var(--shadow);
+        }
+        .section-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; margin-bottom: 6px; }
+        .section-sub { color: var(--text-muted); font-size: 0.8rem; margin-bottom: 28px; }
+        .input-group { margin-bottom: 18px; }
+        .input-group label {
+            display: block; font-size: 0.8rem; font-weight: 500;
+            color: var(--text-muted); letter-spacing: 0.05em;
+            text-transform: uppercase; margin-bottom: 8px;
+        }
+        .input-wrap { position: relative; }
+        .input-wrap input {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 50px 14px 16px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+            -moz-appearance: textfield;
+        }
+        .input-wrap input::-webkit-outer-spin-button,
+        .input-wrap input::-webkit-inner-spin-button { -webkit-appearance: none; }
+        .input-wrap input::placeholder { color: rgba(255,255,255,0.2); }
+        .input-wrap input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(129,140,248,0.15);
+        }
+        .unit {
+            position: absolute; right: 16px; top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.75rem; color: var(--text-muted); pointer-events: none;
+        }
+        .btn-predict {
+            width: 100%; margin-top: 8px; padding: 16px 24px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border: none; border-radius: 12px; color: #fff;
+            font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 500;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            gap: 10px; transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 8px 30px rgba(129,140,248,0.3);
+        }
+        .btn-predict:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 12px 40px rgba(129,140,248,0.4); }
+        .btn-predict:active { transform: translateY(0); }
+        .btn-icon { font-size: 1.1rem; }
+        .result-box {
+            background: var(--surface2);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: var(--radius); padding: 28px 24px;
+            text-align: center; margin-bottom: 24px;
+            border-top: 3px solid var(--result-color);
+            position: relative; overflow: hidden;
+        }
+        .result-box::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 100%;
+            background: radial-gradient(circle at 50% 0%, var(--result-color), transparent 60%);
+            opacity: 0.06; pointer-events: none;
+        }
+        .result-flower { font-size: 2.5rem; margin-bottom: 12px; }
+        .result-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
+        .result-name {
+            font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 900;
+            color: var(--result-color); margin: 6px 0 16px;
+            text-shadow: 0 0 30px var(--result-color);
+        }
+        .result-confidence {
+            display: inline-flex; flex-direction: column; align-items: center;
+            background: rgba(255,255,255,0.05); border-radius: 12px;
+            padding: 10px 20px; margin-bottom: 16px;
+        }
+        .conf-value { font-size: 1.6rem; font-weight: 700; color: var(--result-color); }
+        .conf-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; }
+        .result-desc { font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; }
+        .prob-section { margin-top: 0; }
+        .prob-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 14px; }
+        .prob-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .prob-name { font-size: 0.8rem; width: 80px; color: var(--text-muted); flex-shrink: 0; }
+        .prob-bar-wrap { flex: 1; background: rgba(255,255,255,0.06); border-radius: 100px; height: 8px; overflow: hidden; }
+        .prob-bar { height: 100%; border-radius: 100px; transition: width 0.8s cubic-bezier(.4,0,.2,1); min-width: 2px; }
+        .prob-pct { font-size: 0.78rem; width: 42px; text-align: right; color: var(--text-muted); }
+        .placeholder-box {
+            height: 100%; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-align: center; padding: 30px 20px;
+            background: var(--surface2);
+            border: 1px dashed var(--border);
+            border-radius: var(--radius);
+        }
+        .placeholder-icon { font-size: 3rem; margin-bottom: 16px; }
+        .placeholder-box p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.7; max-width: 240px; }
+        .placeholder-box strong { color: var(--text); }
+        .sample-hint { margin-top: 20px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        .sample-hint span { font-size: 0.75rem; color: var(--text-muted); }
+        .sample-hint button {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid var(--border); border-radius: 8px;
+            color: var(--text); font-family: 'DM Sans', sans-serif;
+            font-size: 0.78rem; padding: 5px 12px; cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .sample-hint button:hover { background: rgba(129,140,248,0.15); border-color: var(--accent); }
+        .error-box {
+            background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3);
+            border-radius: var(--radius); padding: 20px; text-align: center;
+        }
+        .error-icon { font-size: 1.5rem; display: block; margin-bottom: 8px; }
+        .error-box p { font-size: 0.85rem; color: #fca5a5; }
+        .footer { text-align: center; margin-top: 40px; color: var(--text-muted); font-size: 0.78rem; letter-spacing: 0.04em; }
+        .animate-in { animation: fadeSlide 0.5s ease forwards; }
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 720px) {
+            .main-card { grid-template-columns: 1fr; padding: 24px; }
+            .species-row { flex-direction: column; align-items: center; }
+            .species-card { max-width: 100%; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <div class="wrapper">
+
+        <header class="header">
+            <div class="header-tag">Lab 12 — Flask ML App</div>
+            <h1 class="header-title">Iris Flower<br/><span>Classifier</span></h1>
+            <p class="header-sub">Gaussian Naïve Bayes · Trained on Iris Dataset · M Ali</p>
+        </header>
+
+        <div class="species-row">
+            <div class="species-card" style="--c:#4ade80">
+                <span class="species-dot"></span>
+                <strong>Setosa</strong>
+                <p>Small &amp; delicate</p>
+            </div>
+            <div class="species-card" style="--c:#60a5fa">
+                <span class="species-dot"></span>
+                <strong>Versicolor</strong>
+                <p>Medium Blue Flag</p>
+            </div>
+            <div class="species-card" style="--c:#f472b6">
+                <span class="species-dot"></span>
+                <strong>Virginica</strong>
+                <p>Large Eastern Iris</p>
+            </div>
+        </div>
+
+        <div class="main-card">
+
+            <div class="form-section">
+                <h2 class="section-title">Enter Measurements</h2>
+                <p class="section-sub">All values in centimetres (cm)</p>
+
+                <form action="/predict" method="POST" id="irisForm">
+                    <div class="input-group">
+                        <label>Sepal Length (cm)</label>
+                        <div class="input-wrap">
+                            <input type="number" name="sepal_length" step="0.1" min="0" max="10"
+                                   placeholder="e.g. 5.1"
+                                   value="{{ sepal_length if sepal_length is defined else '' }}" required/>
+                            <span class="unit">cm</span>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Sepal Width (cm)</label>
+                        <div class="input-wrap">
+                            <input type="number" name="sepal_width" step="0.1" min="0" max="10"
+                                   placeholder="e.g. 3.5"
+                                   value="{{ sepal_width if sepal_width is defined else '' }}" required/>
+                            <span class="unit">cm</span>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Petal Length (cm)</label>
+                        <div class="input-wrap">
+                            <input type="number" name="petal_length" step="0.1" min="0" max="10"
+                                   placeholder="e.g. 1.4"
+                                   value="{{ petal_length if petal_length is defined else '' }}" required/>
+                            <span class="unit">cm</span>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Petal Width (cm)</label>
+                        <div class="input-wrap">
+                            <input type="number" name="petal_width" step="0.1" min="0" max="10"
+                                   placeholder="e.g. 0.2"
+                                   value="{{ petal_width if petal_width is defined else '' }}" required/>
+                            <span class="unit">cm</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-predict" id="predictBtn">
+                        <span class="btn-text">Predict Species</span>
+                        <span class="btn-icon">→</span>
+                    </button>
+                </form>
+            </div>
+
+            <div class="result-section">
+                <h2 class="section-title">Prediction Result</h2>
+
+                {% if error %}
+                <div class="error-box">
+                    <span class="error-icon">⚠</span>
+                    <p>{{ error }}</p>
+                </div>
+
+                {% elif prediction %}
+                <div class="result-box animate-in" style="--result-color: {{ color }}">
+                    <div class="result-flower">🌸</div>
+                    <div class="result-label">Predicted Species</div>
+                    <div class="result-name">{{ prediction }}</div>
+                    <div class="result-confidence">
+                        <span class="conf-value">{{ confidence }}%</span>
+                        <span class="conf-label">Confidence</span>
+                    </div>
+                    <p class="result-desc">{{ description }}</p>
+                </div>
+                <div class="prob-section">
+                    <h3 class="prob-title">Class Probabilities</h3>
+                    {% for cls, prob in prob_data.items() %}
+                    <div class="prob-row">
+                        <span class="prob-name">{{ cls }}</span>
+                        <div class="prob-bar-wrap">
+                            <div class="prob-bar"
+                                 style="width: {{ prob }}%;
+                                        background: {% if cls == 'Setosa' %}#4ade80{% elif cls == 'Versicolor' %}#60a5fa{% else %}#f472b6{% endif %}">
+                            </div>
+                        </div>
+                        <span class="prob-pct">{{ prob }}%</span>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% else %}
+                <div class="placeholder-box">
+                    <div class="placeholder-icon">🌿</div>
+                    <p>Enter the flower measurements on the left and click <strong>Predict Species</strong> to see the result.</p>
+                    <div class="sample-hint">
+                        <span>Try sample:</span>
+                        <button type="button" onclick="fillSample('setosa')">Setosa</button>
+                        <button type="button" onclick="fillSample('versicolor')">Versicolor</button>
+                        <button type="button" onclick="fillSample('virginica')">Virginica</button>
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>Artificial Intelligence Lab 12 &nbsp;·&nbsp; M Ali &nbsp;·&nbsp; Gaussian NB Model &nbsp;·&nbsp; Iris Dataset</p>
+        </footer>
+
+    </div>
+
+    <script>
+        const samples = {
+            setosa:     { sepal_length: 5.1, sepal_width: 3.5, petal_length: 1.4, petal_width: 0.2 },
+            versicolor: { sepal_length: 6.4, sepal_width: 3.2, petal_length: 4.5, petal_width: 1.5 },
+            virginica:  { sepal_length: 6.3, sepal_width: 3.3, petal_length: 6.0, petal_width: 2.5 }
+        };
+        function fillSample(species) {
+            const s = samples[species];
+            if (!s) return;
+            const form = document.getElementById('irisForm');
+            form.sepal_length.value = s.sepal_length;
+            form.sepal_width.value  = s.sepal_width;
+            form.petal_length.value = s.petal_length;
+            form.petal_width.value  = s.petal_width;
+            const inputs = form.querySelectorAll('input');
+            inputs.forEach(inp => {
+                inp.style.transition = 'border-color 0.1s';
+                inp.style.borderColor = '#818cf8';
+                setTimeout(() => { inp.style.borderColor = ''; }, 600);
+            });
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('irisForm');
+            const btn  = document.getElementById('predictBtn');
+            if (form && btn) {
+                form.addEventListener('submit', () => {
+                    btn.querySelector('.btn-text').textContent = 'Predicting...';
+                    btn.disabled = true;
+                    btn.style.opacity = '0.7';
+                });
+            }
+            document.querySelectorAll('.prob-bar').forEach(bar => {
+                const target = bar.style.width;
+                bar.style.width = '0';
+                setTimeout(() => { bar.style.width = target; }, 100);
+            });
+        });
+    </script>
+</body>
+</html>
