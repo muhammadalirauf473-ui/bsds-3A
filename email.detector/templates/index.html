@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Spam Detector | Premium Security</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    
+    <main class="container">
+        <header class="header">
+            <div class="logo">
+                <i class="ph-fill ph-shield-check"></i>
+                <h1>Neuro<span class="highlight">Guard</span></h1>
+            </div>
+            <p class="subtitle">Next-Generation LLM Powered Threat Detection</p>
+        </header>
+
+        <section class="glass-panel main-panel">
+            <form id="spam-form">
+                <div class="input-group">
+                    <label for="email_content">
+                        <i class="ph ph-envelope-open"></i> Paste Email Content
+                    </label>
+                    <textarea 
+                        id="email_content" 
+                        name="email_content" 
+                        placeholder="Paste the suspicious email text here..." 
+                        required
+                    ></textarea>
+                </div>
+                
+                <button type="submit" class="btn-primary" id="analyze-btn">
+                    <span class="btn-text">Initialize Scan</span>
+                    <i class="ph-bold ph-scan"></i>
+                </button>
+            </form>
+        </section>
+
+        <!-- Loading State -->
+        <section class="loading-state hidden" id="loading-state">
+            <div class="spinner"></div>
+            <p>Neural network analyzing patterns...</p>
+        </section>
+
+        <!-- Result Panel -->
+        <section class="glass-panel result-panel hidden" id="result-panel">
+            <div class="result-header">
+                <div class="status-icon" id="status-icon">
+                    <!-- Icon inserted via JS -->
+                </div>
+                <div class="status-info">
+                    <h2 class="status-text" id="status-text">Analysis Complete</h2>
+                    <div class="confidence">
+                        <span>Confidence: </span>
+                        <strong id="confidence-score">0%</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="reasoning-box">
+                <h3><i class="ph ph-brain"></i> AI Reasoning</h3>
+                <p id="reasoning-text">The AI reasoning will appear here...</p>
+            </div>
+            
+            <button class="btn-secondary" id="reset-btn">
+                <i class="ph ph-arrow-counter-clockwise"></i> Scan Another
+            </button>
+        </section>
+        
+        <!-- Error Panel -->
+        <section class="glass-panel error-panel hidden" id="error-panel">
+            <i class="ph-fill ph-warning-circle"></i>
+            <p id="error-text">An error occurred.</p>
+            <button class="btn-secondary" id="error-reset-btn">Try Again</button>
+        </section>
+        
+    </main>
+
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
